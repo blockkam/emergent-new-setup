@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #07090d;
+  --panel: #0d1117;
+  --panel-2: #121821;
+  --line: #1f2630;
+  --line-2: #2a3340;
+  --text: #e6edf3;
+  --dim: #8b95a5;
+  --dim-2: #5a6573;
+  --green: #26d07c;
+  --green-2: #1fa863;
+  --red: #ff5d6c;
+  --red-2: #d63a48;
+  --amber: #f5b800;
+  --aqua: #58a6ff;
+  --purple: #b073ff;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+.mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "zero", "ss01"; }
+.num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.panel-hd { padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.panel-bd { padding: 14px; }
+
+.kpi { display:flex; flex-direction:column; gap:4px; }
+.kpi .lbl { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.kpi .val { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+.kpi .sub { font-size: 12px; color: var(--dim); }
+
+.pill { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; border: 1px solid var(--line-2); }
+.pill-green { color: var(--green); border-color: rgba(38,208,124,0.4); background: rgba(38,208,124,0.08); }
+.pill-red { color: var(--red); border-color: rgba(255,93,108,0.4); background: rgba(255,93,108,0.08); }
+.pill-amber { color: var(--amber); border-color: rgba(245,184,0,0.4); background: rgba(245,184,0,0.08); }
+.pill-aqua { color: var(--aqua); border-color: rgba(88,166,255,0.4); background: rgba(88,166,255,0.08); }
+.pill-dim { color: var(--dim); }
+
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.t th, table.t td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+table.t th { color: var(--dim); font-weight: 500; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+table.t tr:hover td { background: rgba(255,255,255,0.02); }
+table.t td.r, table.t th.r { text-align: right; }
+
+.tabs { display:flex; gap:0; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+.tab { padding: 10px 16px; cursor: pointer; color: var(--dim); font-size: 13px; letter-spacing: 0.02em; border-bottom: 2px solid transparent; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--amber); }
+
+.select, .input {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.btn {
+  background: var(--panel-2); border: 1px solid var(--line-2); color: var(--text);
+  padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
+  transition: background 120ms ease;
+}
+.btn:hover { background: var(--line); }
+.btn-primary { background: var(--amber); color: #1a1100; border-color: var(--amber); font-weight: 600; }
+.btn-primary:hover { background: #ffc933; }
+
+.divider-v { width: 1px; background: var(--line); }
+.spark { stroke-width: 1.5; fill: none; }
+
+.status-OPEN { color: var(--amber); }
+.status-TP1, .status-TP2, .status-TP3 { color: var(--green); }
+.status-STOPPED, .status-BE_STOP { color: var(--red); }
+.status-EXPIRED { color: var(--dim); }
+
+.scroll { max-height: 480px; overflow-y: auto; }
+.scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
