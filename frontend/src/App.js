@@ -84,20 +84,30 @@ export default function App() {
   const [status, setStatus] = useState("");
   const [side, setSide] = useState("");
   const [tier, setTier] = useState("");
+  const [setupType, setSetupType] = useState("");
+  const [entryModel, setEntryModel] = useState("");
+  const [htfBias, setHtfBias] = useState("");
+  const [regime, setRegime] = useState("");
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
     try {
       const [m, s] = await Promise.all([
         axios.get(`${API}/metrics`, { params: { days } }),
-        axios.get(`${API}/signals`, { params: { limit: 100, status, side, tier } }),
+        axios.get(`${API}/signals`, {
+          params: {
+            limit: 100, status, side, tier,
+            setup_type: setupType, entry_model: entryModel,
+            htf_bias: htfBias, regime,
+          },
+        }),
       ]);
       setMetrics(m.data);
       setSignals(s.data);
     } catch (e) { console.error(e); }
   };
 
-  useEffect(() => { load(); }, [days, status, side, tier]); // eslint-disable-line
+  useEffect(() => { load(); }, [days, status, side, tier, setupType, entryModel, htfBias, regime]); // eslint-disable-line
 
   const runResolve = async () => { setBusy(true); try { await axios.post(`${API}/resolve`); await load(); } finally { setBusy(false); } };
   const runDigest = async () => { setBusy(true); try { await axios.post(`${API}/digest`); } finally { setBusy(false); } };
@@ -202,13 +212,17 @@ export default function App() {
         <GroupTable title="By Regime" rows={metrics?.by_regime} keyLabel="regime" />
         <GroupTable title="By Side" rows={metrics?.by_side} keyLabel="side" />
         <GroupTable title="By Symbol (top 25)" rows={metrics?.by_symbol} keyLabel="symbol" />
+        <GroupTable title="By Setup Type" rows={metrics?.by_setup_type} keyLabel="setup" />
+        <GroupTable title="By Entry Model" rows={metrics?.by_entry_model} keyLabel="model" />
+        <GroupTable title="By HTF Bias" rows={metrics?.by_htf_bias} keyLabel="bias" />
+        <GroupTable title="By Liquidity Event" rows={metrics?.by_liquidity_event} keyLabel="event" />
       </div>
 
       {/* SIGNALS TABLE */}
       <div className="panel">
         <div className="panel-hd">
           <div style={{ fontSize: 12, letterSpacing: ".1em", color: "var(--dim)", textTransform: "uppercase" }}>Recent Signals</div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
             <select className="select" value={status} onChange={(e) => setStatus(e.target.value)} data-testid="filter-status">
               <option value="">all status</option>
               <option>OPEN</option><option>TP1</option><option>TP2</option><option>TP3</option>
@@ -220,6 +234,32 @@ export default function App() {
             <select className="select" value={tier} onChange={(e) => setTier(e.target.value)} data-testid="filter-tier">
               <option value="">all tiers</option><option>S</option><option>A</option><option>B</option><option>C</option>
             </select>
+            <select className="select" value={setupType} onChange={(e) => setSetupType(e.target.value)} data-testid="filter-setup-type">
+              <option value="">all setups</option>
+              <option value="sweep_reclaim">sweep_reclaim</option>
+              <option value="fvg_continuation">fvg_continuation</option>
+              <option value="ob_reversal">ob_reversal</option>
+              <option value="deviation_breakout">deviation_breakout</option>
+            </select>
+            <select className="select" value={entryModel} onChange={(e) => setEntryModel(e.target.value)} data-testid="filter-entry-model">
+              <option value="">all models</option>
+              <option value="aggressive">aggressive</option>
+              <option value="confirmation">confirmation</option>
+              <option value="reclaim">reclaim</option>
+            </select>
+            <select className="select" value={htfBias} onChange={(e) => setHtfBias(e.target.value)} data-testid="filter-htf-bias">
+              <option value="">all htf</option>
+              <option value="bull">bull</option>
+              <option value="bear">bear</option>
+              <option value="neutral">neutral</option>
+            </select>
+            <select className="select" value={regime} onChange={(e) => setRegime(e.target.value)} data-testid="filter-regime">
+              <option value="">all regimes</option>
+              <option value="trending">trending</option>
+              <option value="ranging">ranging</option>
+              <option value="volatile">volatile</option>
+              <option value="compressed">compressed</option>
+            </select>
           </div>
         </div>
         <div className="panel-bd" style={{ padding: 0 }}>
@@ -227,7 +267,7 @@ export default function App() {
             <table className="t" data-testid="table-signals">
               <thead>
                 <tr>
-                  <th>Time</th><th>Symbol</th><th>Side</th><th>Tier</th><th>Path</th>
+                  <th>Time</th><th>Symbol</th><th>Side</th><th>Tier</th><th>Setup</th><th>Model</th><th>HTF</th><th>Path</th>
                   <th className="r">Entry</th><th className="r">SL</th><th className="r">TP1</th>
                   <th className="r">RR1</th><th>Status</th>
                   <th className="r">MFE</th><th className="r">MAE</th><th className="r">Result</th>
@@ -240,6 +280,9 @@ export default function App() {
                     <td className="mono">{s.symbol}</td>
                     <td><Pill tone={sideTone(s.side)}>{s.side === "LONG" ? <><TrendingUp size={10} style={{ verticalAlign: "middle" }} /> LONG</> : <><TrendingDown size={10} style={{ verticalAlign: "middle" }} /> SHORT</>}</Pill></td>
                     <td><Pill tone={s.tier === "S" ? "amber" : s.tier === "A" ? "aqua" : "dim"}>{s.tier}</Pill></td>
+                    <td className="mono pill-dim" style={{ fontSize: 11 }}>{s.setup_type || "—"}</td>
+                    <td className="mono pill-dim" style={{ fontSize: 11 }}>{s.entry_model || "—"}</td>
+                    <td className="mono" style={{ fontSize: 11, color: s.htf_bias === "bull" ? "var(--green)" : s.htf_bias === "bear" ? "var(--red)" : "var(--dim)" }}>{s.htf_bias || "—"}</td>
                     <td className="mono pill-dim" style={{ fontSize: 11 }}>{s.entry_path || "—"}</td>
                     <td className="r num">{fmt(s.entry, 4)}</td>
                     <td className="r num" style={{ color: "var(--red)" }}>{fmt(s.sl, 4)}</td>
@@ -252,7 +295,7 @@ export default function App() {
                   </tr>
                 ))}
                 {signals.items.length === 0 && (
-                  <tr><td colSpan={13} style={{ textAlign: "center", color: "var(--dim)", padding: 36 }}>No signals yet · POST to <span className="mono" style={{ color: "var(--amber)" }}>{API}/signals</span></td></tr>
+                  <tr><td colSpan={16} style={{ textAlign: "center", color: "var(--dim)", padding: 36 }}>No signals yet · POST to <span className="mono" style={{ color: "var(--amber)" }}>{API}/signals</span></td></tr>
                 )}
               </tbody>
             </table>

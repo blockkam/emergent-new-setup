@@ -419,6 +419,56 @@ def evaluate(df_15m: pd.DataFrame, df_1h: pd.DataFrame, df_4h: pd.DataFrame,
 
     risk_pct = abs(entry - sl) / entry * 100.0
 
+    # ── v15.1 advanced classification ─────────────────────────────────
+    # setup_type: pick the strongest active structure feature
+    if entry_path == "Sweep→BOS":
+        setup_type = "sweep_reclaim"
+    elif (long_entry and st["ob_bull_valid"]) or (short_entry and st["ob_bear_valid"]):
+        setup_type = "ob_reversal"
+    elif (long_entry and st["active_bull_fvg"]) or (short_entry and st["active_bear_fvg"]):
+        setup_type = "fvg_continuation"
+    else:
+        setup_type = "deviation_breakout"
+
+    # entry_model: aggressive (no confirmation), confirmation (BOS/CHoCH already closed),
+    # reclaim (price reclaimed the broken level)
+    if (long_entry and st["bull_confirmed"]) or (short_entry and st["bear_confirmed"]):
+        entry_model = "confirmation"
+    elif (long_entry and st["bull_bos"]) or (short_entry and st["bear_bos"]):
+        entry_model = "reclaim"
+    else:
+        entry_model = "aggressive"
+
+    # liquidity_event: only set when the entry was preceded by a sweep
+    liquidity_event = None
+    if long_entry and not math.isnan(st["sweep_wick_low"]):
+        liquidity_event = "asia_low_swept" if (in_london or in_ny) else "swing_low_swept"
+        if st["sweep_was_liq_bull"]:
+            liquidity_event = "liq_wick_low_swept"
+    elif short_entry and not math.isnan(st["sweep_wick_high"]):
+        liquidity_event = "asia_high_swept" if (in_london or in_ny) else "swing_high_swept"
+        if st["sweep_was_liq_bear"]:
+            liquidity_event = "liq_wick_high_swept"
+
+    # htf_bias: normalized lowercase for clean grouping
+    if htf_bull and htf_struct_bull:
+        htf_bias = "bull"
+    elif htf_bear and htf_struct_bear:
+        htf_bias = "bear"
+    else:
+        htf_bias = "neutral"
+
+    # normalized regime + session (lowercase, matches user's classification spec)
+    regime_norm = "trending" if is_trending else "ranging"
+    if in_london:
+        session_norm = "london"
+    elif in_ny:
+        session_norm = "new_york"
+    elif utc_h < 7:
+        session_norm = "asia"
+    else:
+        session_norm = "off"
+
     confluence = {
         "EMA50 bias": "BULL" if bull else "BEAR",
         "HTF (4h)":   "BULL" if htf_bull else "BEAR",
@@ -444,9 +494,13 @@ def evaluate(df_15m: pd.DataFrame, df_1h: pd.DataFrame, df_4h: pd.DataFrame,
         "score": int(total), "max_score": 8, "pct": float(pct),
         "grade": grade, "tier": tier,
         "strength": float(strength), "strength_label": s_label,
-        "regime": "TRENDING" if is_trending else "RANGING",
+        "regime": regime_norm,
         "entry_path": entry_path,
-        "session": "LONDON" if in_london else "NY" if in_ny else "OFF",
+        "session": session_norm,
+        "setup_type": setup_type,
+        "entry_model": entry_model,
+        "liquidity_event": liquidity_event,
+        "htf_bias": htf_bias,
         "confluence": confluence,
         "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     }

@@ -35,12 +35,11 @@ scheduler: Optional[AsyncIOScheduler] = None
 
 # ─── helpers ──────────────────────────────────────────────────────────
 def _session_from_hour(h: int) -> str:
-    if 0 <= h < 7: return "ASIA"
-    if 7 <= h < 12: return "LONDON"
-    if 12 <= h < 13: return "OVERLAP_PRE"
-    if 13 <= h < 17: return "NY"
-    if 17 <= h < 21: return "NY_LATE"
-    return "OFF"
+    """Normalize derived session label to lowercase spec values."""
+    if 0 <= h < 7: return "asia"
+    if 7 <= h < 13: return "london"
+    if 13 <= h < 21: return "new_york"
+    return "off"
 
 
 def _clean(doc: Dict[str, Any]) -> Dict[str, Any]:
@@ -90,6 +89,10 @@ async def create_signal(payload: SignalCreate):
         session=data.get("session"),
         confluence=data.get("confluence"),
         timeframe=data.get("timeframe") or "15m",
+        setup_type=data.get("setup_type"),
+        entry_model=data.get("entry_model"),
+        liquidity_event=data.get("liquidity_event"),
+        htf_bias=data.get("htf_bias"),
     )
     await db.signals.insert_one(sig.model_dump())
     return sig
@@ -103,12 +106,20 @@ async def list_signals(
     symbol: Optional[str] = None,
     entry_path: Optional[str] = None,
     session: Optional[str] = None,
+    setup_type: Optional[str] = None,
+    entry_model: Optional[str] = None,
+    liquidity_event: Optional[str] = None,
+    htf_bias: Optional[str] = None,
+    regime: Optional[str] = None,
     limit: int = Query(200, le=2000),
     offset: int = 0,
 ):
     q: Dict[str, Any] = {}
     for k, v in [("status", status), ("side", side), ("tier", tier),
-                 ("symbol", symbol), ("entry_path", entry_path), ("session", session)]:
+                 ("symbol", symbol), ("entry_path", entry_path), ("session", session),
+                 ("setup_type", setup_type), ("entry_model", entry_model),
+                 ("liquidity_event", liquidity_event), ("htf_bias", htf_bias),
+                 ("regime", regime)]:
         if v:
             q[k] = v
     total = await db.signals.count_documents(q)
@@ -236,6 +247,10 @@ async def metrics(days: int = 30):
         "by_session": group_by("session"),
         "by_side": group_by("side"),
         "by_regime": group_by("regime"),
+        "by_setup_type": group_by("setup_type"),
+        "by_entry_model": group_by("entry_model"),
+        "by_liquidity_event": group_by("liquidity_event"),
+        "by_htf_bias": group_by("htf_bias"),
         "equity": equity,
         "mfe_hist": hist("max_favorable_r", 0, 6, 0.5),
         "mae_hist": hist("max_adverse_r", -3, 0, 0.25),

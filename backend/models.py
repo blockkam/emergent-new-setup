@@ -29,16 +29,22 @@ class SignalCreate(BaseModel):
     tier: Optional[str] = "A"        # S / A / B / C
     grade: Optional[str] = None      # A+/A/B/C/D
     entry_path: Optional[str] = None # Sweep→BOS / BOS+Retest
-    regime: Optional[str] = None
+    regime: Optional[str] = None     # trending / ranging / volatile / compressed
     strength: Optional[float] = None
     strength_label: Optional[str] = None
     score: Optional[int] = None
     max_score: Optional[int] = None
     pct: Optional[float] = None
-    session: Optional[str] = None
+    session: Optional[str] = None    # asia / london / new_york
     confluence: Optional[Dict[str, Any]] = None
     timeframe: Optional[str] = "15m"
     timestamp: Optional[str] = None  # client-side timestamp (informational)
+
+    # ── v15.1 advanced classification (all optional for backward compat) ──
+    setup_type: Optional[str] = None        # sweep_reclaim / fvg_continuation / ob_reversal / deviation_breakout
+    entry_model: Optional[str] = None       # aggressive / confirmation / reclaim
+    liquidity_event: Optional[str] = None   # e.g. asia_low_swept, pdh_swept
+    htf_bias: Optional[str] = None          # bull / bear / neutral
 
 
 class Signal(BaseModel):
@@ -71,6 +77,12 @@ class Signal(BaseModel):
     session: Optional[str] = None
     confluence: Optional[Dict[str, Any]] = None
     timeframe: str = "15m"
+
+    # ── v15.1 advanced classification (all optional for backward compat) ──
+    setup_type: Optional[str] = None
+    entry_model: Optional[str] = None
+    liquidity_event: Optional[str] = None
+    htf_bias: Optional[str] = None
 
     status: str = "OPEN"  # OPEN, TP1, TP2, TP3, STOPPED, BE_STOP, EXPIRED
     hit_tp1: bool = False
