@@ -46,6 +46,10 @@ class SignalCreate(BaseModel):
     liquidity_event: Optional[str] = None   # e.g. asia_low_swept, pdh_swept
     htf_bias: Optional[str] = None          # bull / bear / neutral
 
+    # ── Phase 1 numeric exposure (optional) ───────────────────────────────
+    score_total: Optional[int] = None             # 0..15 weighted score
+    range_expansion_ratio: Optional[float] = None # ATR(14) / ATR(50) at entry
+
 
 class Signal(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -83,6 +87,10 @@ class Signal(BaseModel):
     entry_model: Optional[str] = None
     liquidity_event: Optional[str] = None
     htf_bias: Optional[str] = None
+
+    # ── Phase 1 numeric exposure (optional) ───────────────────────────────
+    score_total: Optional[int] = None
+    range_expansion_ratio: Optional[float] = None
 
     status: str = "OPEN"  # OPEN, TP1, TP2, TP3, STOPPED, BE_STOP, EXPIRED
     hit_tp1: bool = False

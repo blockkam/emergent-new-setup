@@ -93,6 +93,8 @@ async def create_signal(payload: SignalCreate):
         entry_model=data.get("entry_model"),
         liquidity_event=data.get("liquidity_event"),
         htf_bias=data.get("htf_bias"),
+        score_total=data.get("score_total"),
+        range_expansion_ratio=data.get("range_expansion_ratio"),
     )
     await db.signals.insert_one(sig.model_dump())
     return sig
